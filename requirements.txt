@@ -1,0 +1,11 @@
+beautifulsoup4==4.6.0
+biopython==1.70
+html5lib==1.0.1
+lxml==4.2.0
+numpy==1.14.2
+pandas==0.22.0
+PyMySQL==0.8.0
+python-dateutil==2.7.0
+pytz==2018.3
+six==1.11.0
+webencodings==0.5.1
