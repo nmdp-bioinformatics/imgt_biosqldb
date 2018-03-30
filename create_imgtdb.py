@@ -34,6 +34,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     datefmt='%m/%d/%Y %I:%M:%S %p',
                     level=logging.INFO)
 
+skip_alleles = ["HLA-DRB5*01:11", "HLA-DRB5*01:12", "HLA-DRB5*01:13",
+                "HLA-DRB5*02:03", "HLA-DRB5*02:04", "HLA-DRB5*02:05",
+                "HLA-DRB5*01:01:02", "HLA-DRB5*01:03", "HLA-DRB5*01:05",
+                "HLA-DRB5*01:06", "HLA-DRB5*01:07", "HLA-DRB5*01:09",
+                "HLA-DRB5*01:10N"]
+
 
 def download_dat(db):
     url = 'https://raw.githubusercontent.com/ANHIG/IMGTHLA/' + db + '/hla.dat'
@@ -59,30 +65,40 @@ def main():
                         help="Option for running in verbose",
                         action='store_true')
 
-    parser.add_argument("-r", "--releases",
-                        help="Number of releases",
-                        default=4,
+    parser.add_argument("-n", "--number",
+                        required=False,
+                        help="Number of IMGT/DB releases",
+                        default=1,
                         type=int)
+
+    parser.add_argument("-r", "--releases",
+                        required=False,
+                        help="IMGT/DB releases",
+                        type=str)
 
     args = parser.parse_args()
     releases = args.releases
+    number = args.number
 
     if args.verbose:
         verbose = True
     else:
         verbose = False
 
-    try:
-        versions_url = "https://www.ebi.ac.uk/ipd/imgt/hla/docs/release.html"
-        df = pd.read_html(versions_url)[0]
-        x = df.columns
-        dblist = [l.replace(".", '')
-                  for l in df[x[0]].tolist()[0:releases]]
-    except ValueError as err:
-        db_error = "Failed to load DB list: {0}".format(err)
-        logging.info(db_error)
-        logging.info("Defaulting to Latest")
-        dblist = ["Latest"]
+    if releases:
+        dblist = [db for db in releases.split(",")]
+    else:
+        try:
+            versions_url = "https://www.ebi.ac.uk/ipd/imgt/hla/docs/release.html"
+            df = pd.read_html(versions_url)[0]
+            x = df.columns
+            dblist = [l.replace(".", '')
+                      for l in df[x[0]].tolist()[0:number]]
+        except ValueError as err:
+            db_error = "Failed to load DB list: {0}".format(err)
+            logging.info(db_error)
+            logging.info("Defaulting to Latest")
+            dblist = ["Latest"]
 
     # Connecting to mysql DB
     server = BioSeqDatabase.open_database(driver="pymysql", user="root",
@@ -130,12 +146,15 @@ def main():
             os.remove(allele_list)
             sys.exit()
 
+        cmd = "perl -p -i -e 's/[^\\x00-\\x7F]//g' " + hladat
+        os.system(cmd)
+
         # Loading sequence data from hla.dat file
         try:
-            seq_list = SeqIO.parse(hladat, "imgt")
-        except ValueError as err:
-            read_error = "Read dat error: {0}".format(err)
-            logging.error(read_error)
+            seq_list = list(SeqIO.parse(hladat, "imgt"))
+        except:
+            #read_error = "Read dat error: {0}".format(err)
+            logging.error("ERROR LOADING!!")
             server.close()
             os.remove(hladat)
             os.remove(allele_list)
@@ -152,8 +171,9 @@ def main():
                 loc, allele = hla_names[seq.name].split("*")
                 if loc in new_seqs:
                     hla_name = "HLA-" + hla_names[seq.name]
-                    seq.name = hla_name
-                    new_seqs[loc].append(seq)
+                    if not hla_name in skip_alleles:
+                        seq.name = hla_name
+                        new_seqs[loc].append(seq)
 
         dbsp = list(dbv)
         descr = ".".join([dbsp[0], dbsp[1]+dbsp[2], dbsp[3]])

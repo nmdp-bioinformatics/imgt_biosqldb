@@ -3,7 +3,7 @@ MAINTAINER Mike Halagan <mhalagan@nmdp.org>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-ARG RELEASES=3
+ARG RELEASES="3200,3210,3220,3310"
 
 COPY create_imgtdb.py opt/
 COPY requirements.txt opt/
