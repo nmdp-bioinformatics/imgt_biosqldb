@@ -21,6 +21,7 @@
 #    > http://www.opensource.org/licenses/lgpl-license.php
 #
 
+import re
 import os
 import sys
 import logging
