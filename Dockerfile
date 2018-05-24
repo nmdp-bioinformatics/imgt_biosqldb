@@ -3,7 +3,7 @@ MAINTAINER Mike Halagan <mhalagan@nmdp.org>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-ARG RELEASES="3170,3190,3200,3210,3240,3250,3310"
+ARG RELEASES="3310"
 
 COPY create_imgtdb.py opt/
 COPY requirements.txt opt/
@@ -48,4 +48,6 @@ RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh \
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 EXPOSE 3306
+EXPOSE 3307
+
 CMD ["mysqld"]

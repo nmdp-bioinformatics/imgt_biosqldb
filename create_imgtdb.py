@@ -127,11 +127,12 @@ def main():
         hla_names = {}
         try:
             # File formats change...
-            s = "," if dbv == "3260" or dbv == "3270" else " "
             with open(allele_list, 'r') as f:
                 for line in f:
                     line = line.rstrip()
-                    accession, name = line.split(s)
+                    if re.search("#", line) or re.search("AlleleID", line):
+                        continue
+                    accession, name = line.split(",")
                     hla_names.update({accession: name})
             f.close()
             if verbose:
