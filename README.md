@@ -20,7 +20,7 @@ The *-d* flag runs the service in "detached-mode" in the background and *-p* spe
 ```bash
 git clone https://github.com/nmdp-bioinformatics/imgt_biosqldb
 cd nmdp-bioinformatics/imgt_biosqldb
-docker build -t imgt_biosqldb:latest --build-arg RELEASES=5 .
+docker build -t imgt_biosqldb:latest --build-arg RELEASES="3310,3320" .
 docker run -d --name imgt_biosqldb -p 3306:3306 \
     -e MYSQL_ROOT_PASSWORD=my-secret-pw imgt_biosqldb:latest
 ```
